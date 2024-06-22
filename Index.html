@@ -2,91 +2,61 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <title>Speed Calculation Overlay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordgjetting App</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            text-align: center;
+            margin: 50px;
         }
-        #video {
-            width: 90%;
-            max-width: 640px;
-            height: auto;
-            border: 1px solid black;
-            background-color: black;
-        }
-        #overlay {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-        }
-        #controls {
-            margin-top: 10px;
+        #confetti, #trophy {
+            display: none;
         }
     </style>
 </head>
 <body>
+    <h1>Ordgjetting App</h1>
+    <p id="date-time"></p>
+    <p>Gjett dagens ord:</p>
+    <input type="text" id="guess-input" placeholder="Skriv ditt gjetning her">
+    <button onclick="makeGuess()">Gjett</button>
+    <p id="feedback"></p>
+    <p id="last-guess"></p>
+    <div id="confetti">🎉</div>
+    <div id="trophy">🏆</div>
 
-<h1>Speed Calculation Overlay</h1>
-<video id="video" autoplay playsinline></video>
-<div id="overlay">
-    Fart: <span id="speed">0</span> km/t
-</div>
-<div id="controls">
-    <label for="distance">Avstand (meter):</label>
-    <input type="number" id="distance" value="50">
-    <button onclick="startMeasurement()">Start måling</button>
-</div>
+    <script>
+        const words = ["eksempel", "utfordring", "kode", "programmering", "oppgave"];
+        const today = new Date().toISOString().split('T')[0];
+        const wordOfTheDay = words[new Date().getDay() % words.length];
+        document.getElementById('date-time').innerText = `Dato: ${today}, Tid: ${new Date().toLocaleTimeString()}`;
 
-<script>
-    const video = document.getElementById('video');
-    const speedDisplay = document.getElementById('speed');
-    let startTime, endTime;
-    const distanceInput = document.getElementById('distance');
-
-    // Access the camera
-    async function initCamera() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } });
-            video.srcObject = stream;
-        } catch (error) {
-            console.error('Error accessing the camera', error);
-            alert('Kameraet kan ikke aksesseres. Vennligst sørg for at du gir tillatelse til å bruke kameraet og at du kjører dette over HTTPS.');
+        function calculateSimilarity(word1, word2) {
+            let matches = 0;
+            for (let i = 0; i < Math.min(word1.length, word2.length); i++) {
+                if (word1[i] === word2[i]) {
+                    matches++;
+                }
+            }
+            return Math.floor((matches / word2.length) * 100);
         }
-    }
 
-    // Function to start measurement
-    function startMeasurement() {
-        startTime = new Date().getTime();
-        video.addEventListener('click', endMeasurement);
-    }
-
-    // Function to end measurement and calculate speed
-    function endMeasurement() {
-        endTime = new Date().getTime();
-        const distance = parseFloat(distanceInput.value);
-        const time = (endTime - startTime) / 1000; // time in seconds
-        const speedMps = distance / time;
-        const speedKph = speedMps * 3.6;
-        speedDisplay.innerText = speedKph.toFixed(2);
-
-        // Remove the event listener
-        video.removeEventListener('click', endMeasurement);
-    }
-
-    // Initialize the camera
-    initCamera();
-</script>
-
+        function makeGuess() {
+            const guess = document.getElementById('guess-input').value.toLowerCase();
+            if (guess === wordOfTheDay) {
+                document.getElementById('feedback').innerText = "Gratulerer! Du gjettet riktig ord!";
+                document.getElementById('confetti').style.display = 'block';
+                document.getElementById('trophy').style.display = 'block';
+                document.getElementById('last-guess').innerText = `Riktig ord: ${wordOfTheDay}`;
+            } else {
+                const similarity = calculateSimilarity(guess, wordOfTheDay);
+                document.getElementById('feedback').innerText = `Du er ${similarity}% nærme riktig ord.`;
+                document.getElementById('last-guess').innerText = `Siste gjetning: ${guess}`;
+                document.getElementById('confetti').style.display = 'none';
+                document.getElementById('trophy').style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>
